@@ -16,7 +16,9 @@ import android.widget.TextView;
 
 import com.dahai.ownview.R;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -44,6 +46,8 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
     private int startMonth;     // 开始的月份
     private int endMonth;       // 结束的月份。
     private int currentMonth;   //
+
+    VpAdapter adapter;
 
     public CalendarView(@NonNull Context context) {
         this(context,null);
@@ -110,7 +114,8 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
         tv_nextMonth.setOnClickListener(this);
         tv_content.setText(getCurrentTime(currentMonth));
 
-        viewPager.setAdapter(new VpAdapter(4));
+        adapter = new VpAdapter(4);
+        viewPager.setAdapter(adapter);
         VPpositoin = 3;
         viewPager.setCurrentItem(3);
     }
@@ -158,10 +163,17 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
 
     @Override
     public void onPageSelected(int position) {
-        /*if (position > VPpositoin) {
-            month++;
-        } else {
-            month--;
+        if (position == 0) {
+            if (adapter.getView(position + 1) != null) {
+                adapter.getView(position + 1).notifyDate();
+            }
+            return;
+        }
+
+       /* if (position == 3) {
+            if (adapter.getView(position - 1) != null) {
+                adapter.getView(position - 1).notifyDate();
+            }
         }*/
     }
 
@@ -172,6 +184,7 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
 
     class VpAdapter extends PagerAdapter{
         private int count;
+        private List<MonthView> list = new ArrayList<>();
 
         public VpAdapter(int count) {
             this.count = count;
@@ -189,7 +202,8 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            Log.e("position == ",position + "");
+            //Log.e("position == ",position + "");
+
             int month = startMonth;
             for (int i = 0; i < position;i++) {
                 month = changeMonth(month,true);
@@ -197,13 +211,19 @@ public class CalendarView extends FrameLayout implements View.OnClickListener,Vi
             Log.e("选择的月份 = ","" + month);
             int monthDays = getMonthDays(month);
             weekDayOff = getWeekDayOff(year,month);
-            View view = new MonthView(context,monthDays,weekDayOff - 1,month,year,listener);
+            MonthView view = new MonthView(context,monthDays,weekDayOff - 1,month,year,listener);
+            list.add(view);
+
             container.addView(view);
             //ViewGroup.LayoutParams params = view.getLayoutParams();
             int dp20 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,20,context.getResources().getDisplayMetrics());
             //view.setLayoutParams(params);
             container.setPadding(dp20,dp20,0,0);
             return view;
+        }
+
+        public MonthView getView(int position) {
+            return list.get(position);
         }
 
         @Override

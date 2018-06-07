@@ -3,7 +3,6 @@ package com.dahai.ownview.ui.view;
 import android.content.Context;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -16,29 +15,35 @@ import android.widget.TextView;
 import com.dahai.ownview.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
  * Created by 张海洋 on 2017-12-04.
  */
 
-public class MonthView extends RecyclerView{
+public class MonthView extends RecyclerView {
     private Context context;
     private int monthDays;                                   // 一个月的天数。
     private int weekOff;                                     // 星期的偏移量。
     private int year;
     private int month;
     private SelectListener listener;
+    private boolean isCurrentMonth;                         // 是否是当月。
+    private int currentDay;                                 // 当月当天。
+    private int selectDay;                                  // 选择的天数。
+
+    MonthAdapter adapter;
 
     private List<String> dayList = new ArrayList<>();        //
     private boolean[] selects;
 
     public MonthView(Context context) {
-        this(context,null);
+        this(context, null);
     }
 
     public MonthView(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs,0);
+        this(context, attrs, 0);
     }
 
     public MonthView(Context context, @Nullable AttributeSet attrs, int defStyle) {
@@ -46,67 +51,49 @@ public class MonthView extends RecyclerView{
         this.context = context;
     }
 
-    public MonthView(Context context,int monthDays,int weekOff,int month,int year,SelectListener listener) {
+    public MonthView(Context context, int monthDays, int weekOff, int month, int year, SelectListener listener) {
         this(context);
         this.monthDays = monthDays;
         this.weekOff = weekOff;
         this.month = month;
         this.year = year;
         this.listener = listener;
+
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH);
+        if (currentMonth == month) {
+            isCurrentMonth = true;
+            currentDay = calendar.get(Calendar.DATE);
+        }
+
         init();
     }
 
     private void init() {
-        setLayoutManager(new GridLayoutManager(context,7));
+        setLayoutManager(new GridLayoutManager(context, 7));
         int maxSize = monthDays + 7 + weekOff;
         selects = new boolean[maxSize];
-        for (int i = 0;i < maxSize;i++) {
+        for (int i = 0; i < maxSize; i++) {
+
             selects[i] = false;
         }
 
-        /*for (int i = 0;i <= maxSize;i++){
-            switch (i) {
-                case 0:
-                    dayList.add("日");
-                    break;
-                case 1:
-                    dayList.add("一");
-                    break;
-                case 2:
-                    dayList.add("二");
-                    break;
-                case 3:
-                    dayList.add("三");
-                    break;
-                case 4:
-                    dayList.add("四");
-                    break;
-                case 5:
-                    dayList.add("五");
-                    break;
-                case 6:
-                    dayList.add("六");
-                    break;
-            }
+        adapter = new MonthAdapter();
+        setAdapter(adapter);
+    }
 
-            if (i > 6 && i <= (6+weekOff)) {
-                dayList.add("");
-                return;
-            }
+    public void notifyDate(){
+        initSelectd();
+        adapter.notifyDataSetChanged();
+    }
 
-            dayList.add(String.valueOf(i - 6 - weekOff));
-        }*/
-
-        setAdapter(new MonthAdapter());
+    private void initSelectd() {
+        for (int i = 0; i < (monthDays + 7 + weekOff); i++) {
+            selects[i] = false;
+        }
     }
 
     class MonthAdapter extends Adapter<MonthAdapter.MonthViewHolder> {
-        // 一个月的天数
-        /*private int monthDays;
-
-        public MonthAdapter(int monthDays) {
-            this.monthDays = monthDays;
-        }*/
 
         @Override
         public MonthViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -128,7 +115,17 @@ public class MonthView extends RecyclerView{
                 holder.tv_day.setBackgroundColor(0xFFFFFFFF);
                 holder.tv_day.setTextColor(0xFF333333);
             }
-
+            if (isCurrentMonth) {
+                if (position == (weekOff + 6 + currentDay)) {
+                    if (currentDay != selectDay) {
+                        holder.tv_day.setTextColor(0xFFff9600);
+                        holder.tv_day.setBackgroundColor(0xFFFFFFFF);
+                    } else {
+                        holder.tv_day.setBackgroundResource(R.drawable.circle_ff9600);
+                        holder.tv_day.setTextColor(0xFFFFFFFF);
+                    }
+                }
+            }
 
             if (position >= 0 && position <= 6) {
                 switch (position) {
@@ -164,7 +161,7 @@ public class MonthView extends RecyclerView{
                 return;
             }
 
-            if (position > 6 && position <= (6+weekOff)) {
+            if (position > 6 && position <= (6 + weekOff)) {
                 dayList.add("");
                 return;
             }
@@ -177,13 +174,9 @@ public class MonthView extends RecyclerView{
             return monthDays + 7 + weekOff;
         }
 
-        private void initSelectd() {
-            for (int i = 0;i < getItemCount(); i++) {
-                selects[i] = false;
-            }
-        }
 
-        class MonthViewHolder extends ViewHolder implements OnClickListener{
+
+        class MonthViewHolder extends ViewHolder implements OnClickListener {
             TextView tv_day;
             //private boolean selected;
 
@@ -191,8 +184,12 @@ public class MonthView extends RecyclerView{
                 super(itemView);
                 tv_day = (TextView) itemView;
                 int dp27 = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 27, context.getResources().getDisplayMetrics());
-                tv_day.setLayoutParams(new ViewGroup.LayoutParams(dp27,dp27));
+                tv_day.setLayoutParams(new ViewGroup.LayoutParams(dp27, dp27));
                 tv_day.setGravity(Gravity.CENTER);
+                if (getAdapterPosition() == (weekOff + 6 + currentDay)) {
+                    tv_day.setBackgroundResource(R.drawable.circle_ff9600);
+                    tv_day.setTextColor(0xFFFFFFFF);
+                }
                 itemView.setOnClickListener(this);
             }
 
@@ -204,10 +201,11 @@ public class MonthView extends RecyclerView{
                     return;
                 }
 
-                initSelectd();
-
                 int day = adapterPosition - (weekOff + 6);
-                listener.selected(String.valueOf(year),String.valueOf(month + 1),String.valueOf(day));
+                selectDay = day;
+                listener.selected(String.valueOf(year), String.valueOf(month + 1), String.valueOf(day));
+
+                initSelectd();
 
                 if (selects[adapterPosition]) {
                     selects[adapterPosition] = false;
@@ -219,7 +217,7 @@ public class MonthView extends RecyclerView{
         }
     }
 
-    public interface SelectListener{
-        void selected(String year,String month,String day);
+    public interface SelectListener {
+        void selected(String year, String month, String day);
     }
 }
