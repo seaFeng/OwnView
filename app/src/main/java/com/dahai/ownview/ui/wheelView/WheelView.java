@@ -87,7 +87,7 @@ public class WheelView extends View {
 
     // 绘制几个条目，实际上第一项和最后一项Y轴压缩成了0%了，所以实际可见的
     // 数目实际为9
-    private int itemsVisible = 7;
+    private int itemsVisible = 5;
     // 半径
     private int radius;
     // 滚动偏移值，用于记录滚动了多少个item
@@ -247,11 +247,11 @@ public class WheelView extends View {
             canvas.save();
             // 弧长 L = item * couner - itemHeightOffset
             // 求弧度 α= L / r (弧长/半径) 【0，Π】
-            double radian = (itemHeight * counter - itemHeightOffset)/radius;
+            double radian = (itemHeight * counter - itemHeightOffset)/radius;       //这种近似的算法，把外接圆的周长近似为弧长。
             // 弧度转换成角度（把半圆以Y轴为轴心向右转90度，使其处于第一象限及第四象限）
             // angle[-90,90]
             float angle = (float)(90D - (radian / Math.PI) * 180D); // item第一项，从90度开始，逐渐递减到 -90度。
-            //Log.e(TAG,"角度 == " + angle);  //[90 --> -90]
+            Log.e(TAG,"角度 == " + angle);  //[90 --> -90]
             //计算取值可能有细微偏差，保证-90度到90度意外的不绘制
             if (angle >= 90F || angle <= -90F) {
                 canvas.restore();
@@ -277,6 +277,7 @@ public class WheelView extends View {
                 //根据Math.sin(radian)来更改canvas坐标系原点，然后缩放画布，使得文字高度进行缩放，形成弧形3D视觉差
                 /*Log.e(TAG,"canvas 的平移距离 == " + translateY + "    文本的最大的高度 == " + maxTextHeight +
                         "        第一条线的Y == " + firstLineY + "      第二条线的Y == " + secondLinY);*/
+                Log.e(TAG,"平移的距离 == " + translateY);
                 canvas.translate(0.0f,translateY);
                 if (translateY <= firstLineY && maxTextHeight + translateY >= firstLineY) {
                     // 条目经过第一条线
