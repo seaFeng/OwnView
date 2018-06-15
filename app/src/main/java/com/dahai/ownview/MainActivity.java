@@ -18,6 +18,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        //getSupportFragmentManager().beginTransaction().add(R.id.main_content,new ViewgroupFragment()).commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.main_content,new ViewgroupFragment()).commit();
     }
 }

@@ -1,4 +1,4 @@
-package com.dahai.ownview.ui;
+package com.dahai.ownview.ui.GcsSloop.view;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -49,7 +49,53 @@ public class CanvasTextView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        drawPath3(canvas);
+        drawPath6(canvas);
+    }
+
+    /**
+     * addArc 与 arcTo
+     */
+    private void drawPath6(Canvas canvas) {
+        canvas.translate(width/2,height/2);
+        canvas.scale(1,-1);
+
+        Path path = new Path();
+        path.lineTo(100,100);
+
+        RectF oval = new RectF(0,0,300,300);
+
+        path.addArc(oval,0,270);
+       // path.arcTo(oval,0,270);
+
+        canvas.drawPath(path,mPaint);
+    }
+
+    /**
+     *  addArc 与 arcTo
+     */
+    private void drawPath5(Canvas canvas) {
+        canvas.translate(width/2,500);
+        path.addArc(new RectF(-300,-200,0,0),-150,150);
+        path.arcTo(new RectF(0,-200,300,0),-180,150);
+        path.lineTo(0,400);
+        path.close();
+
+        canvas.drawPath(path,mPaint);
+    }
+
+    /**
+     *  addPath
+     */
+    private void drawPath4(Canvas canvas) {
+        canvas.translate(width/2,height/2);
+        canvas.scale(1,-1);
+
+        Path path = new Path();
+        Path src = new Path();
+        path.addRect(new RectF(-200,200,200,-100),Path.Direction.CW);
+        src.addCircle(0,0,100,Path.Direction.CW);
+        path.addPath(src,0,200);
+        canvas.drawPath(path,mPaint);
     }
 
     /**
